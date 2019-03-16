@@ -17,18 +17,19 @@ package com.example.android.sunshine;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.android.sunshine.ForecastAdapter.ForecastAdapterOnClickHandler;
 import com.example.android.sunshine.data.SunshinePreferences;
@@ -38,6 +39,8 @@ import com.example.android.sunshine.utilities.OpenWeatherJsonUtils;
 import java.net.URL;
 
 public class MainActivity extends AppCompatActivity implements ForecastAdapterOnClickHandler {
+
+    private static final String TAG = MainActivity.class.getSimpleName();
 
     private RecyclerView mRecyclerView;
     private ForecastAdapter mForecastAdapter;
@@ -118,12 +121,10 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
     @Override
     public void onClick(String weatherForDay) {
         Context context = this;
-        //  (1) Create a new Activity called DetailActivity using Android Studio's wizard
-        //  (2) Change the root layout of activity_detail.xml to a FrameLayout and remove unnecessary xml attributes
-        //  (3) Remove the Toast and launch the DetailActivity using an explicit Intent
         Class destinationClass = DetailActivity.class;
-        Intent intent = new Intent(context, destinationClass);
-        startActivity(intent);
+        Intent intentToStartDetailActivity = new Intent(context, destinationClass);
+        intentToStartDetailActivity.putExtra(Intent.EXTRA_TEXT, weatherForDay);
+        startActivity(intentToStartDetailActivity);
     }
 
     /**
@@ -210,6 +211,22 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
         return true;
     }
 
+    private void openLocationInMap() {
+        String addressString = "1600 Ampitheatre Parkway, CA";
+        Uri geoLocation = Uri.parse("geo:0,0?q=" + addressString);
+
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(geoLocation);
+
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivity(intent);
+        } else {
+            Log.d(TAG, "Couldn't call " + geoLocation.toString()
+                    + ", no receiving apps installed!");
+        }
+    }
+
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
@@ -217,6 +234,13 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
         if (id == R.id.action_refresh) {
             mForecastAdapter.setWeatherData(null);
             loadWeatherData();
+            return true;
+        }
+
+        // TODO (2) Launch the map when the map menu item is clicked
+
+        if (id == R.id.action_map) {
+            openLocationInMap();
             return true;
         }
 
